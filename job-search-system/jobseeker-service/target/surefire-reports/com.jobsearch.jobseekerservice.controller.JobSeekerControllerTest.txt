@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.jobsearch.jobseekerservice.controller.JobSeekerControllerTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 35.71 s -- in com.jobsearch.jobseekerservice.controller.JobSeekerControllerTest
