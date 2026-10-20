@@ -3,6 +3,7 @@ package com.jobsearch.employerservice.controller;
 import com.jobsearch.employerservice.dto.EmployerRequest;
 import com.jobsearch.employerservice.dto.EmployerResponse;
 import com.jobsearch.employerservice.service.EmployerService;
+import com.jobsearch.employerservice.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -28,11 +30,14 @@ import java.util.List;
 public class EmployerController {
 
     private final EmployerService employerService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping
     @Operation(summary = "Create employer profile", description = "Creates a new employer profile and returns the created record")
-    public ResponseEntity<EmployerResponse> createEmployer(@Valid @RequestBody EmployerRequest request) {
-        EmployerResponse response = employerService.createEmployer(request);
+    public ResponseEntity<EmployerResponse> createEmployer(
+            @Valid @RequestBody EmployerRequest request,
+            @RequestHeader("Authorization") String authorization) {
+        EmployerResponse response = employerService.createEmployer(request, currentUserId(authorization));
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -61,8 +66,13 @@ public class EmployerController {
     @Operation(summary = "Update employer profile", description = "Updates an existing employer profile by its ID")
     public ResponseEntity<EmployerResponse> updateEmployer(
             @PathVariable Long id,
-            @Valid @RequestBody EmployerRequest request) {
-        EmployerResponse response = employerService.updateEmployer(id, request);
+            @Valid @RequestBody EmployerRequest request,
+            @RequestHeader("Authorization") String authorization) {
+        EmployerResponse response = employerService.updateEmployer(id, request, currentUserId(authorization));
         return ResponseEntity.ok(response);
+    }
+
+    private Long currentUserId(String authorization) {
+        return jwtUtil.extractUserId(authorization.substring("Bearer ".length()));
     }
 }

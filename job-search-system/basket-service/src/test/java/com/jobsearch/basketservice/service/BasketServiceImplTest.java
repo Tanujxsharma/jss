@@ -45,6 +45,7 @@ class BasketServiceImplTest {
         sampleBasket = JobBasket.builder()
                 .basketId(1L)
                 .jobSeekerId(101L)
+                .ownerUserId(101L)
                 .jobId(202L)
                 .addedDate(LocalDateTime.now())
                 .build();
@@ -56,7 +57,7 @@ class BasketServiceImplTest {
         when(basketRepository.existsByJobSeekerIdAndJobId(101L, 202L)).thenReturn(false);
         when(basketRepository.save(any(JobBasket.class))).thenReturn(sampleBasket);
 
-        BasketResponse response = basketService.addToBasket(sampleRequest);
+        BasketResponse response = basketService.addToBasket(sampleRequest, 101L);
 
         assertNotNull(response);
         assertEquals(1L, response.getBasketId());
@@ -75,7 +76,7 @@ class BasketServiceImplTest {
 
         DuplicateBasketException exception = assertThrows(
                 DuplicateBasketException.class,
-                () -> basketService.addToBasket(sampleRequest)
+                () -> basketService.addToBasket(sampleRequest, 101L)
         );
 
         assertTrue(exception.getMessage().contains("already in the basket"));
@@ -86,36 +87,36 @@ class BasketServiceImplTest {
     @Test
     @DisplayName("removeFromBasket - not found throws BasketItemNotFoundException")
     void testRemoveFromBasket_NotFoundThrowsBasketItemNotFoundException() {
-        when(basketRepository.findById(999L)).thenReturn(Optional.empty());
+        when(basketRepository.findByBasketIdAndOwnerUserId(999L, 101L)).thenReturn(Optional.empty());
 
         BasketItemNotFoundException exception = assertThrows(
                 BasketItemNotFoundException.class,
-                () -> basketService.removeFromBasket(999L)
+                () -> basketService.removeFromBasket(999L, 101L)
         );
 
         assertTrue(exception.getMessage().contains("Basket item not found with id: 999"));
-        verify(basketRepository, times(1)).findById(999L);
+        verify(basketRepository, times(1)).findByBasketIdAndOwnerUserId(999L, 101L);
         verify(basketRepository, never()).delete(any(JobBasket.class));
     }
 
     @Test
     @DisplayName("removeFromBasket - success deletes item")
     void testRemoveFromBasket_Success() {
-        when(basketRepository.findById(1L)).thenReturn(Optional.of(sampleBasket));
+        when(basketRepository.findByBasketIdAndOwnerUserId(1L, 101L)).thenReturn(Optional.of(sampleBasket));
         doNothing().when(basketRepository).delete(sampleBasket);
 
-        assertDoesNotThrow(() -> basketService.removeFromBasket(1L));
+        assertDoesNotThrow(() -> basketService.removeFromBasket(1L, 101L));
 
-        verify(basketRepository, times(1)).findById(1L);
+        verify(basketRepository, times(1)).findByBasketIdAndOwnerUserId(1L, 101L);
         verify(basketRepository, times(1)).delete(sampleBasket);
     }
 
     @Test
     @DisplayName("getBasketBySeeker - returns list of basket items")
     void testGetBasketBySeeker_Success() {
-        when(basketRepository.findByJobSeekerId(101L)).thenReturn(List.of(sampleBasket));
+        when(basketRepository.findByOwnerUserId(101L)).thenReturn(List.of(sampleBasket));
 
-        List<BasketResponse> responses = basketService.getBasketBySeeker(101L);
+        List<BasketResponse> responses = basketService.getBasketBySeeker(101L, 101L);
 
         assertNotNull(responses);
         assertEquals(1, responses.size());
@@ -123,32 +124,34 @@ class BasketServiceImplTest {
         assertEquals(101L, responses.get(0).getJobSeekerId());
         assertEquals(202L, responses.get(0).getJobId());
 
-        verify(basketRepository, times(1)).findByJobSeekerId(101L);
+        verify(basketRepository, times(1)).findByOwnerUserId(101L);
     }
 
     @Test
     @DisplayName("removeByJobAndSeeker - success deletes item")
     void testRemoveByJobAndSeeker_Success() {
-        when(basketRepository.findByJobSeekerIdAndJobId(101L, 202L)).thenReturn(Optional.of(sampleBasket));
+        when(basketRepository.findByJobSeekerIdAndJobIdAndOwnerUserId(101L, 202L, 101L))
+                .thenReturn(Optional.of(sampleBasket));
         doNothing().when(basketRepository).delete(sampleBasket);
 
-        assertDoesNotThrow(() -> basketService.removeByJobAndSeeker(101L, 202L));
+        assertDoesNotThrow(() -> basketService.removeByJobAndSeeker(101L, 202L, 101L));
 
-        verify(basketRepository, times(1)).findByJobSeekerIdAndJobId(101L, 202L);
+        verify(basketRepository, times(1)).findByJobSeekerIdAndJobIdAndOwnerUserId(101L, 202L, 101L);
         verify(basketRepository, times(1)).delete(sampleBasket);
     }
 
     @Test
     @DisplayName("removeByJobAndSeeker - not found throws BasketItemNotFoundException")
     void testRemoveByJobAndSeeker_NotFoundThrowsBasketItemNotFoundException() {
-        when(basketRepository.findByJobSeekerIdAndJobId(101L, 999L)).thenReturn(Optional.empty());
+        when(basketRepository.findByJobSeekerIdAndJobIdAndOwnerUserId(101L, 999L, 101L))
+                .thenReturn(Optional.empty());
 
         assertThrows(
                 BasketItemNotFoundException.class,
-                () -> basketService.removeByJobAndSeeker(101L, 999L)
+                () -> basketService.removeByJobAndSeeker(101L, 999L, 101L)
         );
 
-        verify(basketRepository, times(1)).findByJobSeekerIdAndJobId(101L, 999L);
+        verify(basketRepository, times(1)).findByJobSeekerIdAndJobIdAndOwnerUserId(101L, 999L, 101L);
         verify(basketRepository, never()).delete(any(JobBasket.class));
     }
 }

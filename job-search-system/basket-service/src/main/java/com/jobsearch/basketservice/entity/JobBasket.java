@@ -34,6 +34,9 @@ public class JobBasket {
     @Column(name = "job_seeker_id", nullable = false)
     private Long jobSeekerId;
 
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
     @Column(name = "job_id", nullable = false)
     private Long jobId;
 

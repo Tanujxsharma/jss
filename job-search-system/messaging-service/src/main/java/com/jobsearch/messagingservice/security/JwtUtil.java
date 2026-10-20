@@ -3,7 +3,6 @@ package com.jobsearch.messagingservice.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,17 +18,11 @@ import java.util.function.Function;
 @Slf4j
 public class JwtUtil {
 
-    @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
+    @Value("${jwt.secret}")
     private String secret;
 
     private SecretKey getSigningKey() {
-        try {
-            byte[] keyBytes = Decoders.BASE64.decode(secret);
-            return Keys.hmacShaKeyFor(keyBytes);
-        } catch (Exception e) {
-            byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-            return Keys.hmacShaKeyFor(keyBytes);
-        }
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String extractUsername(String token) {
@@ -78,6 +71,10 @@ public class JwtUtil {
             Object roles = claims.get("roles");
             if (roles instanceof List<?>) {
                 return ((List<?>) roles).stream().map(Object::toString).toList();
+            }
+            Object role = claims.get("role");
+            if (role instanceof String roleName) {
+                return List.of(roleName);
             }
             return List.of();
         } catch (Exception e) {

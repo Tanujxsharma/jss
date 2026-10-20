@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -35,6 +36,10 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/messages/employer").hasRole("EMPLOYER")
+                        .requestMatchers(HttpMethod.POST, "/api/messages/seeker").hasRole("JOB_SEEKER")
+                        .requestMatchers(HttpMethod.GET, "/api/messages/employer/**").hasRole("EMPLOYER")
+                        .requestMatchers(HttpMethod.GET, "/api/messages/seeker/**").hasRole("JOB_SEEKER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

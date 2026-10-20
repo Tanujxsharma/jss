@@ -27,6 +27,9 @@ public class Job {
     @Column(name = "employer_id", nullable = false)
     private Long employerId;
 
+    @Column(name = "employer_user_id")
+    private Long employerUserId;
+
     @Column(name = "title", nullable = false)
     private String title;
 

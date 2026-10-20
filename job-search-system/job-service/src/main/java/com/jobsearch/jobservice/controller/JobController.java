@@ -3,6 +3,7 @@ package com.jobsearch.jobservice.controller;
 import com.jobsearch.jobservice.dto.JobRequest;
 import com.jobsearch.jobservice.dto.JobResponse;
 import com.jobsearch.jobservice.service.JobService;
+import com.jobsearch.jobservice.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,12 +23,14 @@ import java.util.List;
 public class JobController {
 
     private final JobService jobService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping
     @Operation(summary = "Create a new job posting", description = "Creates a new job with ACTIVE status and returns created job details")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<JobResponse> createJob(@Valid @RequestBody JobRequest request) {
-        JobResponse response = jobService.createJob(request);
+    public ResponseEntity<JobResponse> createJob(@Valid @RequestBody JobRequest request,
+                                                 @RequestHeader("Authorization") String authorization) {
+        JobResponse response = jobService.createJob(request, currentUserId(authorization), authorization);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -66,8 +69,9 @@ public class JobController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<JobResponse> updateJob(
             @Parameter(description = "Unique identifier of the job") @PathVariable Long id,
-            @Valid @RequestBody JobRequest request) {
-        JobResponse response = jobService.updateJob(id, request);
+            @Valid @RequestBody JobRequest request,
+            @RequestHeader("Authorization") String authorization) {
+        JobResponse response = jobService.updateJob(id, request, currentUserId(authorization));
         return ResponseEntity.ok(response);
     }
 
@@ -75,8 +79,9 @@ public class JobController {
     @Operation(summary = "Delete a job posting", description = "Permanently deletes a job posting by ID")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> deleteJob(
-            @Parameter(description = "Unique identifier of the job") @PathVariable Long id) {
-        jobService.deleteJob(id);
+            @Parameter(description = "Unique identifier of the job") @PathVariable Long id,
+            @RequestHeader("Authorization") String authorization) {
+        jobService.deleteJob(id, currentUserId(authorization));
         return ResponseEntity.noContent().build();
     }
 
@@ -84,8 +89,13 @@ public class JobController {
     @Operation(summary = "Close a job posting", description = "Marks a job posting as CLOSED so it no longer appears in active searches")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<JobResponse> closeJob(
-            @Parameter(description = "Unique identifier of the job") @PathVariable Long id) {
-        JobResponse response = jobService.closeJob(id);
+            @Parameter(description = "Unique identifier of the job") @PathVariable Long id,
+            @RequestHeader("Authorization") String authorization) {
+        JobResponse response = jobService.closeJob(id, currentUserId(authorization));
         return ResponseEntity.ok(response);
+    }
+
+    private Long currentUserId(String authorization) {
+        return jwtUtil.extractUserId(authorization.substring("Bearer ".length()));
     }
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,7 +37,10 @@ public class JobSeekerServiceImpl implements JobSeekerService {
 
     @Override
     @Transactional
-    public JobSeekerResponse createJobSeeker(JobSeekerRequest request) {
+    public JobSeekerResponse createJobSeeker(JobSeekerRequest request, Long authenticatedUserId) {
+        if (!authenticatedUserId.equals(request.getUserId())) {
+            throw new AccessDeniedException("Job seeker profile must belong to the authenticated user");
+        }
         log.info("Creating job seeker for userId: {}, email: {}", request.getUserId(), request.getEmail());
 
         if (jobSeekerRepository.existsByEmail(request.getEmail())) {
@@ -81,10 +85,14 @@ public class JobSeekerServiceImpl implements JobSeekerService {
 
     @Override
     @Transactional
-    public JobSeekerResponse updateJobSeeker(Long id, JobSeekerRequest request) {
+    public JobSeekerResponse updateJobSeeker(Long id, JobSeekerRequest request, Long authenticatedUserId) {
         log.info("Updating job seeker with id: {}", id);
         JobSeeker existing = jobSeekerRepository.findById(id)
                 .orElseThrow(() -> new JobSeekerNotFoundException("JobSeeker not found with id: " + id));
+        if (!authenticatedUserId.equals(existing.getUserId())
+                || !authenticatedUserId.equals(request.getUserId())) {
+            throw new AccessDeniedException("Cannot update another job seeker's profile or change its owner");
+        }
 
         if (!existing.getEmail().equalsIgnoreCase(request.getEmail()) &&
                 jobSeekerRepository.existsByEmail(request.getEmail())) {
@@ -106,11 +114,14 @@ public class JobSeekerServiceImpl implements JobSeekerService {
 
     @Override
     @Transactional
-    public JobSeekerResponse uploadResume(Long id, MultipartFile file) {
+    public JobSeekerResponse uploadResume(Long id, MultipartFile file, Long authenticatedUserId) {
         log.info("Uploading resume for job seeker id: {}", id);
 
         JobSeeker jobSeeker = jobSeekerRepository.findById(id)
                 .orElseThrow(() -> new JobSeekerNotFoundException("JobSeeker not found with id: " + id));
+        if (!authenticatedUserId.equals(jobSeeker.getUserId())) {
+            throw new AccessDeniedException("Cannot upload a resume for another job seeker");
+        }
 
         if (file == null || file.isEmpty()) {
             throw new FileStorageException("Cannot upload empty file");

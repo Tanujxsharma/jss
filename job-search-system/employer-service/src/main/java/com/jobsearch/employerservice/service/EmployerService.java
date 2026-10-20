@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface EmployerService {
 
-    EmployerResponse createEmployer(EmployerRequest request);
+    EmployerResponse createEmployer(EmployerRequest request, Long authenticatedUserId);
 
     EmployerResponse getEmployerById(Long id);
 
     EmployerResponse getEmployerByUserId(Long userId);
 
-    EmployerResponse updateEmployer(Long id, EmployerRequest request);
+    EmployerResponse updateEmployer(Long id, EmployerRequest request, Long authenticatedUserId);
 
     List<EmployerResponse> getAllEmployers();
 }

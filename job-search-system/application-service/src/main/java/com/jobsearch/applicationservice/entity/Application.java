@@ -29,8 +29,14 @@ public class Application {
     @Column(name = "job_seeker_id", nullable = false)
     private Long jobSeekerId;
 
+    @Column(name = "job_seeker_user_id")
+    private Long jobSeekerUserId;
+
     @Column(name = "employer_id", nullable = false)
     private Long employerId;
+
+    @Column(name = "employer_user_id")
+    private Long employerUserId;
 
     @Column(name = "cover_letter", columnDefinition = "TEXT")
     private String coverLetter;

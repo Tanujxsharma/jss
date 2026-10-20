@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -34,6 +35,10 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/actuator/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasRole("EMPLOYER")
+                        .requestMatchers(HttpMethod.PUT, "/api/jobs/**").hasRole("EMPLOYER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").hasRole("EMPLOYER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/jobs/**").hasRole("EMPLOYER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

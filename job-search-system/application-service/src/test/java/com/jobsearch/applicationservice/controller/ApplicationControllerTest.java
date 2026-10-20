@@ -72,10 +72,12 @@ class ApplicationControllerTest {
                 .coverLetter("Experienced engineer application")
                 .build();
 
-        when(applicationService.applyForJob(any(ApplicationRequest.class)))
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(applicationService.applyForJob(any(ApplicationRequest.class), eq("Bearer test-token"), eq(101L)))
                 .thenReturn(createSampleResponse(1L, ApplicationStatus.PENDING));
 
         mockMvc.perform(post("/api/applications")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -85,7 +87,7 @@ class ApplicationControllerTest {
                 .andExpect(jsonPath("$.employerId", is(300)))
                 .andExpect(jsonPath("$.status", is("PENDING")));
 
-        verify(applicationService, times(1)).applyForJob(any(ApplicationRequest.class));
+        verify(applicationService, times(1)).applyForJob(any(ApplicationRequest.class), eq("Bearer test-token"), eq(101L));
     }
 
     @Test
@@ -108,88 +110,61 @@ class ApplicationControllerTest {
                 .andExpect(jsonPath("$.errors.jobSeekerId", notNullValue()))
                 .andExpect(jsonPath("$.errors.employerId", notNullValue()));
 
-        verify(applicationService, never()).applyForJob(any());
+        verify(applicationService, never()).applyForJob(any(), any(), any());
     }
 
     @Test
     @DisplayName("GET /api/applications/job/{jobId} returns 200 with list of applications")
     @WithMockUser
     void getApplicationsByJob_Returns200() throws Exception {
-        when(applicationService.getApplicationsByJob(100L))
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(applicationService.getApplicationsByJob(100L, 101L))
                 .thenReturn(List.of(createSampleResponse(1L, ApplicationStatus.PENDING)));
 
         mockMvc.perform(get("/api/applications/job/100")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].jobId", is(100)));
 
-        verify(applicationService, times(1)).getApplicationsByJob(100L);
+        verify(applicationService, times(1)).getApplicationsByJob(100L, 101L);
     }
 
     @Test
     @DisplayName("GET /api/applications/seeker/{seekerId} returns 200 with list of applications")
     @WithMockUser
     void getApplicationsBySeeker_Returns200() throws Exception {
-        when(applicationService.getApplicationsBySeeker(200L))
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(applicationService.getApplicationsBySeeker(200L, 101L))
                 .thenReturn(List.of(createSampleResponse(1L, ApplicationStatus.PENDING)));
 
         mockMvc.perform(get("/api/applications/seeker/200")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].jobSeekerId", is(200)));
 
-        verify(applicationService, times(1)).getApplicationsBySeeker(200L);
+        verify(applicationService, times(1)).getApplicationsBySeeker(200L, 101L);
     }
 
     @Test
     @DisplayName("GET /api/applications/employer/{employerId} returns 200 with list of applications")
     @WithMockUser
     void getApplicationsByEmployer_Returns200() throws Exception {
-        when(applicationService.getApplicationsByEmployer(300L))
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(applicationService.getApplicationsByEmployer(300L, 101L))
                 .thenReturn(List.of(createSampleResponse(1L, ApplicationStatus.PENDING)));
 
         mockMvc.perform(get("/api/applications/employer/300")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employerId", is(300)));
 
-        verify(applicationService, times(1)).getApplicationsByEmployer(300L);
-    }
-
-    @Test
-    @DisplayName("GET /api/applications/{id} when found returns 200")
-    @WithMockUser
-    void getApplicationById_Found_Returns200() throws Exception {
-        when(applicationService.getApplicationById(1L))
-                .thenReturn(createSampleResponse(1L, ApplicationStatus.PENDING));
-
-        mockMvc.perform(get("/api/applications/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.status", is("PENDING")));
-
-        verify(applicationService, times(1)).getApplicationById(1L);
-    }
-
-    @Test
-    @DisplayName("GET /api/applications/{id} when not found returns 404")
-    @WithMockUser
-    void getApplicationById_NotFound_Returns404() throws Exception {
-        when(applicationService.getApplicationById(999L))
-                .thenThrow(new ApplicationNotFoundException(999L));
-
-        mockMvc.perform(get("/api/applications/999")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.error", is("Not Found")))
-                .andExpect(jsonPath("$.message", containsString("999")));
-
-        verify(applicationService, times(1)).getApplicationById(999L);
+        verify(applicationService, times(1)).getApplicationsByEmployer(300L, 101L);
     }
 
     @Test
@@ -200,17 +175,19 @@ class ApplicationControllerTest {
                 .status(ApplicationStatus.SHORTLISTED)
                 .build();
 
-        when(applicationService.updateApplicationStatus(eq(1L), eq(ApplicationStatus.SHORTLISTED)))
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(applicationService.updateApplicationStatus(eq(1L), eq(ApplicationStatus.SHORTLISTED), eq(101L)))
                 .thenReturn(createSampleResponse(1L, ApplicationStatus.SHORTLISTED));
 
         mockMvc.perform(patch("/api/applications/1/status")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.status", is("SHORTLISTED")));
 
-        verify(applicationService, times(1)).updateApplicationStatus(1L, ApplicationStatus.SHORTLISTED);
+        verify(applicationService, times(1)).updateApplicationStatus(1L, ApplicationStatus.SHORTLISTED, 101L);
     }
 
     @Test
@@ -222,6 +199,7 @@ class ApplicationControllerTest {
                 .build();
 
         mockMvc.perform(patch("/api/applications/1/status")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -229,6 +207,6 @@ class ApplicationControllerTest {
                 .andExpect(jsonPath("$.error", is("Bad Request")))
                 .andExpect(jsonPath("$.errors.status", notNullValue()));
 
-        verify(applicationService, never()).updateApplicationStatus(any(), any());
+        verify(applicationService, never()).updateApplicationStatus(any(), any(), any());
     }
 }

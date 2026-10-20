@@ -17,7 +17,7 @@ public class JwtUtil {
 
     private final SecretKey key;
 
-    public JwtUtil(@Value("${jwt.secret:JobSearchSecretKeyMustBeAtLeast256BitsLongForHMACSHA256JobSearchApp}") String secret) {
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -41,5 +41,13 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return getClaims(token).getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        return getClaims(token).get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        return getClaims(token).get("role", String.class);
     }
 }

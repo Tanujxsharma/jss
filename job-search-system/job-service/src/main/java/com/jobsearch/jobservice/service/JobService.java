@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface JobService {
 
-    JobResponse createJob(JobRequest request);
+    JobResponse createJob(JobRequest request, Long authenticatedUserId, String authorization);
 
     JobResponse getJobById(Long id);
 
@@ -17,9 +17,9 @@ public interface JobService {
 
     List<JobResponse> getJobsByEmployer(Long employerId);
 
-    JobResponse updateJob(Long id, JobRequest request);
+    JobResponse updateJob(Long id, JobRequest request, Long authenticatedUserId);
 
-    void deleteJob(Long id);
+    void deleteJob(Long id, Long authenticatedUserId);
 
-    JobResponse closeJob(Long id);
+    JobResponse closeJob(Long id, Long authenticatedUserId);
 }

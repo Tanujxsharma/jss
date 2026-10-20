@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface BasketService {
 
-    BasketResponse addToBasket(BasketRequest request);
+    BasketResponse addToBasket(BasketRequest request, Long authenticatedUserId);
 
-    List<BasketResponse> getBasketBySeeker(Long jobSeekerId);
+    List<BasketResponse> getBasketBySeeker(Long jobSeekerId, Long authenticatedUserId);
 
-    void removeFromBasket(Long basketId);
+    void removeFromBasket(Long basketId, Long authenticatedUserId);
 
-    void removeByJobAndSeeker(Long jobSeekerId, Long jobId);
+    void removeByJobAndSeeker(Long jobSeekerId, Long jobId, Long authenticatedUserId);
 }

@@ -23,7 +23,7 @@ public class BasketServiceImpl implements BasketService {
 
     @Override
     @Transactional
-    public BasketResponse addToBasket(BasketRequest request) {
+    public BasketResponse addToBasket(BasketRequest request, Long authenticatedUserId) {
         log.info("Adding job id {} to basket for job seeker id {}", request.getJobId(), request.getJobSeekerId());
 
         boolean exists = basketRepository.existsByJobSeekerIdAndJobId(
@@ -35,6 +35,7 @@ public class BasketServiceImpl implements BasketService {
 
         JobBasket jobBasket = JobBasket.builder()
                 .jobSeekerId(request.getJobSeekerId())
+                .ownerUserId(authenticatedUserId)
                 .jobId(request.getJobId())
                 .build();
 
@@ -45,18 +46,18 @@ public class BasketServiceImpl implements BasketService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BasketResponse> getBasketBySeeker(Long jobSeekerId) {
+    public List<BasketResponse> getBasketBySeeker(Long jobSeekerId, Long authenticatedUserId) {
         log.info("Fetching basket items for job seeker id {}", jobSeekerId);
-        return basketRepository.findByJobSeekerId(jobSeekerId).stream()
+        return basketRepository.findByOwnerUserId(authenticatedUserId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     @Override
     @Transactional
-    public void removeFromBasket(Long basketId) {
+    public void removeFromBasket(Long basketId, Long authenticatedUserId) {
         log.info("Removing basket item with ID {}", basketId);
-        JobBasket jobBasket = basketRepository.findById(basketId)
+        JobBasket jobBasket = basketRepository.findByBasketIdAndOwnerUserId(basketId, authenticatedUserId)
                 .orElseThrow(() -> new BasketItemNotFoundException(
                         "Basket item not found with id: " + basketId));
         basketRepository.delete(jobBasket);
@@ -65,9 +66,10 @@ public class BasketServiceImpl implements BasketService {
 
     @Override
     @Transactional
-    public void removeByJobAndSeeker(Long jobSeekerId, Long jobId) {
+    public void removeByJobAndSeeker(Long jobSeekerId, Long jobId, Long authenticatedUserId) {
         log.info("Removing basket item for seeker id {} and job id {}", jobSeekerId, jobId);
-        JobBasket jobBasket = basketRepository.findByJobSeekerIdAndJobId(jobSeekerId, jobId)
+        JobBasket jobBasket = basketRepository.findByJobSeekerIdAndJobIdAndOwnerUserId(
+                        jobSeekerId, jobId, authenticatedUserId)
                 .orElseThrow(() -> new BasketItemNotFoundException(
                         "Basket item not found for seeker ID " + jobSeekerId + " and job ID " + jobId));
         basketRepository.delete(jobBasket);

@@ -3,6 +3,7 @@ package com.jobsearch.basketservice.controller;
 import com.jobsearch.basketservice.dto.BasketRequest;
 import com.jobsearch.basketservice.dto.BasketResponse;
 import com.jobsearch.basketservice.service.BasketService;
+import com.jobsearch.basketservice.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -31,6 +33,7 @@ import java.util.List;
 public class BasketController {
 
     private final BasketService basketService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping
     @Operation(summary = "Add a job to basket", description = "Saves a job into the job seeker's basket. Returns 201 on success or 409 if already present.")
@@ -40,8 +43,10 @@ public class BasketController {
             @ApiResponse(responseCode = "409", description = "Job already exists in basket"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
-    public ResponseEntity<BasketResponse> addToBasket(@Valid @RequestBody BasketRequest request) {
-        BasketResponse response = basketService.addToBasket(request);
+    public ResponseEntity<BasketResponse> addToBasket(
+            @Valid @RequestBody BasketRequest request,
+            @RequestHeader("Authorization") String authorization) {
+        BasketResponse response = basketService.addToBasket(request, currentUserId(authorization));
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -53,8 +58,9 @@ public class BasketController {
     })
     public ResponseEntity<List<BasketResponse>> getBasketBySeeker(
             @Parameter(description = "ID of the job seeker", required = true)
-            @PathVariable Long jobSeekerId) {
-        List<BasketResponse> responses = basketService.getBasketBySeeker(jobSeekerId);
+            @PathVariable Long jobSeekerId,
+            @RequestHeader("Authorization") String authorization) {
+        List<BasketResponse> responses = basketService.getBasketBySeeker(jobSeekerId, currentUserId(authorization));
         return ResponseEntity.ok(responses);
     }
 
@@ -67,8 +73,9 @@ public class BasketController {
     })
     public ResponseEntity<Void> removeFromBasket(
             @Parameter(description = "ID of the basket entry to delete", required = true)
-            @PathVariable Long basketId) {
-        basketService.removeFromBasket(basketId);
+            @PathVariable Long basketId,
+            @RequestHeader("Authorization") String authorization) {
+        basketService.removeFromBasket(basketId, currentUserId(authorization));
         return ResponseEntity.noContent().build();
     }
 
@@ -83,8 +90,13 @@ public class BasketController {
             @Parameter(description = "ID of the job seeker", required = true)
             @PathVariable Long jobSeekerId,
             @Parameter(description = "ID of the job to remove", required = true)
-            @PathVariable Long jobId) {
-        basketService.removeByJobAndSeeker(jobSeekerId, jobId);
+            @PathVariable Long jobId,
+            @RequestHeader("Authorization") String authorization) {
+        basketService.removeByJobAndSeeker(jobSeekerId, jobId, currentUserId(authorization));
         return ResponseEntity.noContent().build();
+    }
+
+    private Long currentUserId(String authorization) {
+        return jwtUtil.extractUserId(authorization.substring("Bearer ".length()));
     }
 }

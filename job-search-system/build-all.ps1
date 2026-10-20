@@ -24,7 +24,10 @@ $services = @(
     "messaging-service"
 )
 
-$mvnArgs = if ($RunTests) { "clean package" } else { "clean package -DskipTests" }
+$mvnArgs = @("clean", "package")
+if (-not $RunTests) {
+    $mvnArgs += "-DskipTests"
+}
 $failed = @()
 
 Write-Host "============================================================" -ForegroundColor Cyan
@@ -48,8 +51,12 @@ foreach ($service in $services) {
     Write-Host "[$current/$total] Building $service..." -ForegroundColor Yellow
     Push-Location $serviceDir
     try {
-        $output = & mvn $mvnArgs.Split(' ') 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & mvn @mvnArgs
+        $mavenExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($mavenExitCode -ne 0) {
             Write-Host "  FAILED: $service" -ForegroundColor Red
             $failed += $service
         } else {
@@ -57,6 +64,7 @@ foreach ($service in $services) {
         }
     }
     catch {
+        $ErrorActionPreference = $previousErrorActionPreference
         Write-Host "  ERROR: $service - $_" -ForegroundColor Red
         $failed += $service
     }

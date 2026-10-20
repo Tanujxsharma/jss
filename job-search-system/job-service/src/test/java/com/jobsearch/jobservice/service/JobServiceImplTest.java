@@ -2,6 +2,7 @@ package com.jobsearch.jobservice.service;
 
 import com.jobsearch.jobservice.dto.JobRequest;
 import com.jobsearch.jobservice.dto.JobResponse;
+import com.jobsearch.jobservice.client.EmployerServiceClient;
 import com.jobsearch.jobservice.entity.Job;
 import com.jobsearch.jobservice.enums.JobStatus;
 import com.jobsearch.jobservice.exception.JobNotFoundException;
@@ -31,6 +32,9 @@ class JobServiceImplTest {
     @Mock
     private JobRepository jobRepository;
 
+    @Mock
+    private EmployerServiceClient employerServiceClient;
+
     @InjectMocks
     private JobServiceImpl jobService;
 
@@ -42,6 +46,7 @@ class JobServiceImplTest {
         sampleJob = Job.builder()
                 .id(1L)
                 .employerId(10L)
+                .employerUserId(101L)
                 .title("Software Engineer")
                 .companyName("Acme Corp")
                 .location("New York, NY")
@@ -71,9 +76,10 @@ class JobServiceImplTest {
     @Test
     @DisplayName("Should successfully create a job and return JobResponse")
     void createJob_Success() {
+        when(employerServiceClient.getEmployerOwner(10L, "Bearer test-token")).thenReturn(java.util.Optional.of(101L));
         when(jobRepository.save(any(Job.class))).thenReturn(sampleJob);
 
-        JobResponse response = jobService.createJob(sampleRequest);
+        JobResponse response = jobService.createJob(sampleRequest, 101L, "Bearer test-token");
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(1L);
@@ -169,7 +175,7 @@ class JobServiceImplTest {
                 .jobType("FULL_TIME")
                 .build();
 
-        JobResponse response = jobService.updateJob(1L, updateRequest);
+        JobResponse response = jobService.updateJob(1L, updateRequest, 101L);
 
         assertThat(response).isNotNull();
         verify(jobRepository, times(1)).findById(1L);
@@ -181,7 +187,7 @@ class JobServiceImplTest {
     void updateJob_NotFound_ThrowsJobNotFoundException() {
         when(jobRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> jobService.updateJob(999L, sampleRequest))
+        assertThatThrownBy(() -> jobService.updateJob(999L, sampleRequest, 101L))
                 .isInstanceOf(JobNotFoundException.class)
                 .hasMessageContaining("999");
 
@@ -195,7 +201,7 @@ class JobServiceImplTest {
         when(jobRepository.findById(1L)).thenReturn(Optional.of(sampleJob));
         doNothing().when(jobRepository).delete(sampleJob);
 
-        jobService.deleteJob(1L);
+        jobService.deleteJob(1L, 101L);
 
         verify(jobRepository, times(1)).findById(1L);
         verify(jobRepository, times(1)).delete(sampleJob);
@@ -206,7 +212,7 @@ class JobServiceImplTest {
     void deleteJob_NotFound_ThrowsJobNotFoundException() {
         when(jobRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> jobService.deleteJob(999L))
+        assertThatThrownBy(() -> jobService.deleteJob(999L, 101L))
                 .isInstanceOf(JobNotFoundException.class)
                 .hasMessageContaining("999");
 
@@ -220,7 +226,7 @@ class JobServiceImplTest {
         when(jobRepository.findById(1L)).thenReturn(Optional.of(sampleJob));
         when(jobRepository.save(any(Job.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        JobResponse response = jobService.closeJob(1L);
+        JobResponse response = jobService.closeJob(1L, 101L);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(JobStatus.CLOSED);
@@ -234,7 +240,7 @@ class JobServiceImplTest {
     void closeJob_NotFound_ThrowsJobNotFoundException() {
         when(jobRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> jobService.closeJob(999L))
+        assertThatThrownBy(() -> jobService.closeJob(999L, 101L))
                 .isInstanceOf(JobNotFoundException.class)
                 .hasMessageContaining("999");
 

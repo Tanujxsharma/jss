@@ -10,6 +10,7 @@ import com.jobsearch.employerservice.service.EmployerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +23,10 @@ public class EmployerServiceImpl implements EmployerService {
 
     @Override
     @Transactional
-    public EmployerResponse createEmployer(EmployerRequest request) {
+    public EmployerResponse createEmployer(EmployerRequest request, Long authenticatedUserId) {
+        if (!authenticatedUserId.equals(request.getUserId())) {
+            throw new AccessDeniedException("Employer profile must belong to the authenticated user");
+        }
         if (employerRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateEmployerException("Employer with email " + request.getEmail() + " already exists");
         }
@@ -63,9 +67,15 @@ public class EmployerServiceImpl implements EmployerService {
 
     @Override
     @Transactional
-    public EmployerResponse updateEmployer(Long id, EmployerRequest request) {
+    public EmployerResponse updateEmployer(Long id, EmployerRequest request, Long authenticatedUserId) {
         Employer existingEmployer = employerRepository.findById(id)
                 .orElseThrow(() -> new EmployerNotFoundException("Employer not found with id: " + id));
+        if (!authenticatedUserId.equals(existingEmployer.getUserId())) {
+            throw new AccessDeniedException("Cannot update another employer's profile");
+        }
+        if (!authenticatedUserId.equals(request.getUserId())) {
+            throw new AccessDeniedException("Employer profile ownership cannot be changed");
+        }
 
         if (!existingEmployer.getEmail().equalsIgnoreCase(request.getEmail())
                 && employerRepository.existsByEmail(request.getEmail())) {

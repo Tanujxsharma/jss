@@ -20,6 +20,7 @@ public class JobResponse {
 
     @Schema(description = "ID of the employer who posted the job", example = "1")
     private Long employerId;
+    private Long employerUserId;
 
     @Schema(description = "Job title", example = "Senior Java Developer")
     private String title;
@@ -61,6 +62,7 @@ public class JobResponse {
         return JobResponse.builder()
                 .id(job.getId())
                 .employerId(job.getEmployerId())
+                .employerUserId(job.getEmployerUserId())
                 .title(job.getTitle())
                 .companyName(job.getCompanyName())
                 .location(job.getLocation())

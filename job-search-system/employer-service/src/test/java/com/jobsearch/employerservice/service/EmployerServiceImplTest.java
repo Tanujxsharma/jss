@@ -72,7 +72,7 @@ class EmployerServiceImplTest {
         when(employerRepository.existsByUserId(employerRequest.getUserId())).thenReturn(false);
         when(employerRepository.save(any(Employer.class))).thenReturn(employer);
 
-        EmployerResponse response = employerService.createEmployer(employerRequest);
+        EmployerResponse response = employerService.createEmployer(employerRequest, 101L);
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(1L);
@@ -87,7 +87,7 @@ class EmployerServiceImplTest {
     void createEmployer_DuplicateEmail_ThrowsDuplicateEmployerException() {
         when(employerRepository.existsByEmail(employerRequest.getEmail())).thenReturn(true);
 
-        assertThatThrownBy(() -> employerService.createEmployer(employerRequest))
+        assertThatThrownBy(() -> employerService.createEmployer(employerRequest, 101L))
                 .isInstanceOf(DuplicateEmployerException.class)
                 .hasMessageContaining("already exists");
 
@@ -100,7 +100,7 @@ class EmployerServiceImplTest {
         when(employerRepository.existsByEmail(employerRequest.getEmail())).thenReturn(false);
         when(employerRepository.existsByUserId(employerRequest.getUserId())).thenReturn(true);
 
-        assertThatThrownBy(() -> employerService.createEmployer(employerRequest))
+        assertThatThrownBy(() -> employerService.createEmployer(employerRequest, 101L))
                 .isInstanceOf(DuplicateEmployerException.class)
                 .hasMessageContaining("Employer profile already exists for user ID");
 
@@ -178,7 +178,7 @@ class EmployerServiceImplTest {
         when(employerRepository.existsByEmail("hr@acmeglobal.com")).thenReturn(false);
         when(employerRepository.save(any(Employer.class))).thenReturn(employer);
 
-        EmployerResponse response = employerService.updateEmployer(1L, updateRequest);
+        EmployerResponse response = employerService.updateEmployer(1L, updateRequest, 101L);
 
         assertThat(response).isNotNull();
         verify(employerRepository, times(1)).save(employer);
@@ -189,7 +189,7 @@ class EmployerServiceImplTest {
     void updateEmployer_NotFound_ThrowsEmployerNotFoundException() {
         when(employerRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> employerService.updateEmployer(99L, employerRequest))
+        assertThatThrownBy(() -> employerService.updateEmployer(99L, employerRequest, 101L))
                 .isInstanceOf(EmployerNotFoundException.class)
                 .hasMessageContaining("Employer not found with id: 99");
 

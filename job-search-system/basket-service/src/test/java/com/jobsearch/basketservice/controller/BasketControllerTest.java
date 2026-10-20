@@ -47,6 +47,7 @@ class BasketControllerTest {
     @Test
     @DisplayName("POST /api/basket - success returns 201 Created")
     void testAddToBasket_Success() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         BasketRequest request = BasketRequest.builder()
                 .jobSeekerId(101L)
                 .jobId(202L)
@@ -59,9 +60,10 @@ class BasketControllerTest {
                 .addedDate(LocalDateTime.now())
                 .build();
 
-        when(basketService.addToBasket(any(BasketRequest.class))).thenReturn(response);
+        when(basketService.addToBasket(any(BasketRequest.class), eq(101L))).thenReturn(response);
 
         mockMvc.perform(post("/api/basket")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -73,12 +75,14 @@ class BasketControllerTest {
     @Test
     @DisplayName("POST /api/basket - validation failure returns 400 Bad Request")
     void testAddToBasket_ValidationFailure() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         BasketRequest invalidRequest = BasketRequest.builder()
                 .jobSeekerId(null)
                 .jobId(null)
                 .build();
 
         mockMvc.perform(post("/api/basket")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -90,15 +94,17 @@ class BasketControllerTest {
     @Test
     @DisplayName("POST /api/basket - duplicate returns 409 Conflict")
     void testAddToBasket_DuplicateConflict() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         BasketRequest request = BasketRequest.builder()
                 .jobSeekerId(101L)
                 .jobId(202L)
                 .build();
 
-        when(basketService.addToBasket(any(BasketRequest.class)))
+        when(basketService.addToBasket(any(BasketRequest.class), eq(101L)))
                 .thenThrow(new DuplicateBasketException("Job with ID 202 is already in the basket"));
 
         mockMvc.perform(post("/api/basket")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
@@ -109,6 +115,7 @@ class BasketControllerTest {
     @Test
     @DisplayName("GET /api/basket/{jobSeekerId} - returns 200 OK")
     void testGetBasketBySeeker_Success() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         BasketResponse response = BasketResponse.builder()
                 .basketId(1L)
                 .jobSeekerId(101L)
@@ -116,9 +123,9 @@ class BasketControllerTest {
                 .addedDate(LocalDateTime.now())
                 .build();
 
-        when(basketService.getBasketBySeeker(101L)).thenReturn(List.of(response));
+        when(basketService.getBasketBySeeker(101L, 101L)).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/basket/101"))
+        mockMvc.perform(get("/api/basket/101").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].basketId").value(1L))
                 .andExpect(jsonPath("$[0].jobSeekerId").value(101L))
@@ -128,21 +135,23 @@ class BasketControllerTest {
     @Test
     @DisplayName("DELETE /api/basket/{basketId} - returns 204 No Content")
     void testRemoveFromBasket_Success() throws Exception {
-        doNothing().when(basketService).removeFromBasket(1L);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        doNothing().when(basketService).removeFromBasket(1L, 101L);
 
-        mockMvc.perform(delete("/api/basket/1"))
+        mockMvc.perform(delete("/api/basket/1").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNoContent());
 
-        verify(basketService, times(1)).removeFromBasket(1L);
+        verify(basketService, times(1)).removeFromBasket(1L, 101L);
     }
 
     @Test
     @DisplayName("DELETE /api/basket/{basketId} - not found returns 404")
     void testRemoveFromBasket_NotFound() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         doThrow(new BasketItemNotFoundException("Basket item not found with id: 999"))
-                .when(basketService).removeFromBasket(999L);
+                .when(basketService).removeFromBasket(999L, 101L);
 
-        mockMvc.perform(delete("/api/basket/999"))
+        mockMvc.perform(delete("/api/basket/999").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
@@ -150,11 +159,12 @@ class BasketControllerTest {
     @Test
     @DisplayName("DELETE /api/basket/seeker/{jobSeekerId}/job/{jobId} - returns 204 No Content")
     void testRemoveByJobAndSeeker_Success() throws Exception {
-        doNothing().when(basketService).removeByJobAndSeeker(101L, 202L);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        doNothing().when(basketService).removeByJobAndSeeker(101L, 202L, 101L);
 
-        mockMvc.perform(delete("/api/basket/seeker/101/job/202"))
+        mockMvc.perform(delete("/api/basket/seeker/101/job/202").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNoContent());
 
-        verify(basketService, times(1)).removeByJobAndSeeker(101L, 202L);
+        verify(basketService, times(1)).removeByJobAndSeeker(101L, 202L, 101L);
     }
 }

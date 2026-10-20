@@ -89,17 +89,13 @@ CREATE DATABASE IF NOT EXISTS messaging_db;
 
 **Default credentials:** `username=root`, `password=root`
 
-To override, set environment variables before running each service:
-```bash
-set DB_USERNAME=your_username
-set DB_PASSWORD=your_password
-```
+For local defaults and the required shared JWT secret, see [Environment Variables](#-environment-variables).
 
 ---
 
 ## 🚦 Startup Order (CRITICAL)
 
-> ⚠️ Services **must** be started in this exact order. Starting `application-service` before `job-service` or `jobseeker-service` are up will cause WebClient connection errors on the first apply request.
+> Recommended dependency order. Eureka-based REST calls require the relevant downstream services to be registered and available before the corresponding operation is invoked.
 
 | # | Service | Port | Wait Before Next |
 |---|---|---|---|
@@ -420,30 +416,43 @@ job-search-system/
 
 ## ⚙️ Environment Variables
 
+For local PowerShell sessions, configure the database credentials and generate one shared JWT secret before launching the service script:
+
+```powershell
+$env:SPRING_DATASOURCE_USERNAME = "root"
+$env:SPRING_DATASOURCE_PASSWORD = "your-local-mysql-password"
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+$env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+```
+
+Keep this secret in the same shell session when you run `.\start-all-services.bat`; do not commit it. The services use it as a UTF-8 HMAC key, so keep the generated string identical across all services.
+
 | Variable | Default | Used By |
 |---|---|---|
-| `DB_USERNAME` | `root` | All services |
-| `DB_PASSWORD` | `root` | All services |
+| `SPRING_DATASOURCE_USERNAME` | `root` | All services |
+| `SPRING_DATASOURCE_PASSWORD` | `root` | All services |
+| `SPRING_DATASOURCE_URL` | Service-specific local MySQL URL | All data services |
+| `JWT_SECRET` | Required; shared by all services (at least 32 characters) | Auth and protected services |
+| `JWT_EXPIRATION` | `86400000` | Auth and protected services |
 
-JWT configuration is in each service's `application.yml`. For production, externalize via environment variables or a Config Server.
-
-**JWT Secret** (same across all services — must match):
-```
-jobSearchSystemSecretKey2024ThisIsAVeryLongSecretKeyForHS256Algorithm
-```
-**JWT Expiration:** 86400000 ms (24 hours)
+All service configuration is in `application.properties`. The same `JWT_SECRET` must be set for Auth Service and every service that validates tokens. Do not commit or reuse a development secret in production.
 
 ---
 
 ## ⚠️ Known Limitations
 
-- **No Config Server** — configuration is per-service in `application.yml`
+- **No Config Server** — configuration is per-service in `application.properties`
 - **Resume files stored locally** at `./uploads/resumes/` in the jobseeker-service directory — not shareable across multiple instances
 - **No email/SMS notifications**
 - **No Kafka/RabbitMQ** — inter-service communication uses REST (WebClient)
+- **Synchronous service dependencies** — applying for a job and creating a job require the relevant downstream services to be available
+- **Messaging participant ownership is not fully enforced** — role checks exist, but message/conversation profile IDs are not yet verified against the authenticated user's profile
 - **Single-node Eureka** — no high-availability replication
 - **No advanced candidate matching** — job/candidate search uses basic SQL `LIKE` queries
 - **No rate limiting** on API Gateway
+- **Ownership columns added for new records** — legacy jobs/applications/basket entries need an explicit owner backfill before their protected update/read flows work
 
 ---
 

@@ -94,9 +94,11 @@ class EmployerControllerTest {
     @Test
     @DisplayName("POST /api/employers with valid body returns 201 Created")
     void createEmployer_ValidBody_Returns201() throws Exception {
-        when(employerService.createEmployer(any(EmployerRequest.class))).thenReturn(sampleResponse);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(employerService.createEmployer(any(EmployerRequest.class), eq(101L))).thenReturn(sampleResponse);
 
         mockMvc.perform(post("/api/employers")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
@@ -108,6 +110,7 @@ class EmployerControllerTest {
     @Test
     @DisplayName("POST /api/employers with blank org name returns 400 Bad Request")
     void createEmployer_BlankOrgName_Returns400() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         EmployerRequest invalidRequest = EmployerRequest.builder()
                 .userId(101L)
                 .organizationName("") // blank org name
@@ -117,6 +120,7 @@ class EmployerControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/employers")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
@@ -164,9 +168,11 @@ class EmployerControllerTest {
     @Test
     @DisplayName("PUT /api/employers/{id} with valid body returns 200 OK")
     void updateEmployer_Success_Returns200() throws Exception {
-        when(employerService.updateEmployer(eq(1L), any(EmployerRequest.class))).thenReturn(sampleResponse);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(employerService.updateEmployer(eq(1L), any(EmployerRequest.class), eq(101L))).thenReturn(sampleResponse);
 
         mockMvc.perform(put("/api/employers/{id}", 1L)
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk())

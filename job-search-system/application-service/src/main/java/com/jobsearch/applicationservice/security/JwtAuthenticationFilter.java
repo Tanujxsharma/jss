@@ -46,12 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Object rolesClaim = claims.get("roles");
                 if (rolesClaim instanceof List<?> list) {
                     for (Object role : list) {
-                        authorities.add(new SimpleGrantedAuthority(role.toString()));
+                        authorities.add(toAuthority(role.toString()));
                     }
                 } else {
                     Object roleClaim = claims.get("role");
                     if (roleClaim != null) {
-                        authorities.add(new SimpleGrantedAuthority(roleClaim.toString()));
+                        authorities.add(toAuthority(roleClaim.toString()));
                     } else {
                         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
                     }
@@ -65,5 +65,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private SimpleGrantedAuthority toAuthority(String role) {
+        return new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role);
     }
 }

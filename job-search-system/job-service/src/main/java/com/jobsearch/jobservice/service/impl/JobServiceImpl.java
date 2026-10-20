@@ -2,6 +2,7 @@ package com.jobsearch.jobservice.service.impl;
 
 import com.jobsearch.jobservice.dto.JobRequest;
 import com.jobsearch.jobservice.dto.JobResponse;
+import com.jobsearch.jobservice.client.EmployerServiceClient;
 import com.jobsearch.jobservice.entity.Job;
 import com.jobsearch.jobservice.enums.JobStatus;
 import com.jobsearch.jobservice.exception.JobNotFoundException;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
@@ -21,14 +23,21 @@ import java.util.List;
 public class JobServiceImpl implements JobService {
 
     private final JobRepository jobRepository;
+    private final EmployerServiceClient employerServiceClient;
 
     @Override
     @Transactional
-    public JobResponse createJob(JobRequest request) {
+    public JobResponse createJob(JobRequest request, Long authenticatedUserId, String authorization) {
         log.info("Creating new job with title: '{}' for employerId: {}", request.getTitle(), request.getEmployerId());
+        Long employerOwnerId = employerServiceClient.getEmployerOwner(request.getEmployerId(), authorization)
+                .orElseThrow(() -> new IllegalArgumentException("Employer profile does not exist"));
+        if (!authenticatedUserId.equals(employerOwnerId)) {
+            throw new AccessDeniedException("Cannot create a job for another employer's profile");
+        }
 
         Job job = Job.builder()
                 .employerId(request.getEmployerId())
+                .employerUserId(authenticatedUserId)
                 .title(request.getTitle())
                 .companyName(request.getCompanyName())
                 .location(request.getLocation())
@@ -86,15 +95,13 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional
-    public JobResponse updateJob(Long id, JobRequest request) {
+    public JobResponse updateJob(Long id, JobRequest request, Long authenticatedUserId) {
         log.info("Updating job with ID: {}", id);
 
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new JobNotFoundException(id));
+        requireOwner(job, authenticatedUserId);
 
-        if (request.getEmployerId() != null) {
-            job.setEmployerId(request.getEmployerId());
-        }
         job.setTitle(request.getTitle());
         job.setCompanyName(request.getCompanyName());
         job.setLocation(request.getLocation());
@@ -111,23 +118,31 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional
-    public void deleteJob(Long id) {
+    public void deleteJob(Long id, Long authenticatedUserId) {
         log.info("Deleting job with ID: {}", id);
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new JobNotFoundException(id));
+        requireOwner(job, authenticatedUserId);
         jobRepository.delete(job);
         log.info("Successfully deleted job with ID: {}", id);
     }
 
     @Override
     @Transactional
-    public JobResponse closeJob(Long id) {
+    public JobResponse closeJob(Long id, Long authenticatedUserId) {
         log.info("Closing job with ID: {}", id);
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new JobNotFoundException(id));
+        requireOwner(job, authenticatedUserId);
         job.setStatus(JobStatus.CLOSED);
         Job closedJob = jobRepository.save(job);
         log.info("Successfully closed job with ID: {}", closedJob.getId());
         return JobResponse.fromEntity(closedJob);
+    }
+
+    private void requireOwner(Job job, Long authenticatedUserId) {
+        if (job.getEmployerUserId() == null || !job.getEmployerUserId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Cannot modify a job owned by another employer");
+        }
     }
 }

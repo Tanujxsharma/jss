@@ -3,7 +3,6 @@ package com.jobsearch.employerservice.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,16 +17,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
+    @Value("${jwt.secret}")
     private String secret;
 
     private SecretKey getSigningKey() {
-        try {
-            byte[] keyBytes = Decoders.BASE64.decode(secret);
-            return Keys.hmacShaKeyFor(keyBytes);
-        } catch (Exception e) {
-            return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        }
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public Claims extractAllClaims(String token) {
@@ -45,6 +39,10 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     public Date extractExpiration(String token) {

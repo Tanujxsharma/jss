@@ -84,7 +84,7 @@ class JobSeekerServiceImplTest {
         when(jobSeekerRepository.findByUserId(101L)).thenReturn(Optional.empty());
         when(jobSeekerRepository.save(any(JobSeeker.class))).thenReturn(sampleJobSeeker);
 
-        JobSeekerResponse response = jobSeekerService.createJobSeeker(sampleRequest);
+        JobSeekerResponse response = jobSeekerService.createJobSeeker(sampleRequest, 101L);
 
         assertNotNull(response);
         assertEquals(1L, response.getId());
@@ -98,7 +98,7 @@ class JobSeekerServiceImplTest {
     void createJobSeeker_EmailExists_ThrowsException() {
         when(jobSeekerRepository.existsByEmail("john.doe@example.com")).thenReturn(true);
 
-        assertThrows(DuplicateJobSeekerException.class, () -> jobSeekerService.createJobSeeker(sampleRequest));
+        assertThrows(DuplicateJobSeekerException.class, () -> jobSeekerService.createJobSeeker(sampleRequest, 101L));
         verify(jobSeekerRepository, never()).save(any(JobSeeker.class));
     }
 
@@ -160,7 +160,7 @@ class JobSeekerServiceImplTest {
                 "Sample resume content".getBytes()
         );
 
-        JobSeekerResponse response = jobSeekerService.uploadResume(1L, mockFile);
+        JobSeekerResponse response = jobSeekerService.uploadResume(1L, mockFile, 101L);
 
         assertNotNull(response);
         assertEquals("/uploads/resumes/1_resume.pdf", response.getResumeUrl());

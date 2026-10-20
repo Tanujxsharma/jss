@@ -59,8 +59,11 @@ class JobSeekerControllerTest {
                 .build();
 
         when(jobSeekerService.getJobSeekerById(eq(1L))).thenReturn(response);
+        when(jwtUtil.extractRole("test-token")).thenReturn("JOB_SEEKER");
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
 
         mockMvc.perform(get("/api/jobseekers/1")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
@@ -96,9 +99,11 @@ class JobSeekerControllerTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        when(jobSeekerService.createJobSeeker(any(JobSeekerRequest.class))).thenReturn(response);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(jobSeekerService.createJobSeeker(any(JobSeekerRequest.class), eq(101L))).thenReturn(response);
 
         mockMvc.perform(post("/api/jobseekers")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -110,6 +115,7 @@ class JobSeekerControllerTest {
     @Test
     @DisplayName("POST /api/jobseekers - blank name should return 400 Bad Request")
     void createJobSeeker_BlankName_Returns400() throws Exception {
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
         JobSeekerRequest invalidRequest = JobSeekerRequest.builder()
                 .userId(101L)
                 .fullName("") // Blank name
@@ -119,6 +125,7 @@ class JobSeekerControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/jobseekers")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())

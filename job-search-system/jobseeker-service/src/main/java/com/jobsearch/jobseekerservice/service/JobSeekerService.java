@@ -9,15 +9,15 @@ import java.util.List;
 
 public interface JobSeekerService {
 
-    JobSeekerResponse createJobSeeker(JobSeekerRequest request);
+    JobSeekerResponse createJobSeeker(JobSeekerRequest request, Long authenticatedUserId);
 
     JobSeekerResponse getJobSeekerById(Long id);
 
     JobSeekerResponse getJobSeekerByUserId(Long userId);
 
-    JobSeekerResponse updateJobSeeker(Long id, JobSeekerRequest request);
+    JobSeekerResponse updateJobSeeker(Long id, JobSeekerRequest request, Long authenticatedUserId);
 
-    JobSeekerResponse uploadResume(Long id, MultipartFile file);
+    JobSeekerResponse uploadResume(Long id, MultipartFile file, Long authenticatedUserId);
 
     List<JobSeekerResponse> searchCandidates(String skills, String location, BigDecimal minExperience);
 }

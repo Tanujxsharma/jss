@@ -8,15 +8,14 @@ import java.util.List;
 
 public interface ApplicationService {
 
-    ApplicationResponse applyForJob(ApplicationRequest request);
+    ApplicationResponse applyForJob(ApplicationRequest request, String authorization, Long authenticatedUserId);
 
-    List<ApplicationResponse> getApplicationsByJob(Long jobId);
+    List<ApplicationResponse> getApplicationsByJob(Long jobId, Long authenticatedUserId);
 
-    List<ApplicationResponse> getApplicationsBySeeker(Long jobSeekerId);
+    List<ApplicationResponse> getApplicationsBySeeker(Long jobSeekerId, Long authenticatedUserId);
 
-    List<ApplicationResponse> getApplicationsByEmployer(Long employerId);
+    List<ApplicationResponse> getApplicationsByEmployer(Long employerId, Long authenticatedUserId);
 
-    ApplicationResponse updateApplicationStatus(Long id, ApplicationStatus status);
+    ApplicationResponse updateApplicationStatus(Long id, ApplicationStatus status, Long authenticatedUserId);
 
-    ApplicationResponse getApplicationById(Long id);
 }

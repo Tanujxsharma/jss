@@ -98,9 +98,12 @@ class JobControllerTest {
                 .jobType("FULL_TIME")
                 .build();
 
-        when(jobService.createJob(any(JobRequest.class))).thenReturn(createSampleResponse(1L));
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(jobService.createJob(any(JobRequest.class), eq(101L), eq("Bearer test-token")))
+                .thenReturn(createSampleResponse(1L));
 
         mockMvc.perform(post("/api/jobs")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -108,7 +111,7 @@ class JobControllerTest {
                 .andExpect(jsonPath("$.title", is("Software Engineer")))
                 .andExpect(jsonPath("$.status", is("ACTIVE")));
 
-        verify(jobService, times(1)).createJob(any(JobRequest.class));
+        verify(jobService, times(1)).createJob(any(JobRequest.class), eq(101L), eq("Bearer test-token"));
     }
 
     @Test
@@ -122,6 +125,7 @@ class JobControllerTest {
                 .build();
 
         mockMvc.perform(post("/api/jobs")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -129,7 +133,7 @@ class JobControllerTest {
                 .andExpect(jsonPath("$.error", is("Bad Request")))
                 .andExpect(jsonPath("$.validationErrors.title", notNullValue()));
 
-        verify(jobService, never()).createJob(any(JobRequest.class));
+        verify(jobService, never()).createJob(any(JobRequest.class), any(), any());
     }
 
     @Test
@@ -197,28 +201,31 @@ class JobControllerTest {
         JobResponse updatedResponse = createSampleResponse(1L);
         updatedResponse.setTitle("Senior Software Engineer");
 
-        when(jobService.updateJob(eq(1L), any(JobRequest.class))).thenReturn(updatedResponse);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(jobService.updateJob(eq(1L), any(JobRequest.class), eq(101L))).thenReturn(updatedResponse);
 
         mockMvc.perform(put("/api/jobs/1")
+                        .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.title", is("Senior Software Engineer")));
 
-        verify(jobService, times(1)).updateJob(eq(1L), any(JobRequest.class));
+        verify(jobService, times(1)).updateJob(eq(1L), any(JobRequest.class), eq(101L));
     }
 
     @Test
     @DisplayName("DELETE /api/jobs/{id} returns 204 No Content")
     @WithMockUser
     void deleteJob_Returns204() throws Exception {
-        doNothing().when(jobService).deleteJob(1L);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        doNothing().when(jobService).deleteJob(1L, 101L);
 
-        mockMvc.perform(delete("/api/jobs/1"))
+        mockMvc.perform(delete("/api/jobs/1").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNoContent());
 
-        verify(jobService, times(1)).deleteJob(1L);
+        verify(jobService, times(1)).deleteJob(1L, 101L);
     }
 
     @Test
@@ -228,13 +235,14 @@ class JobControllerTest {
         JobResponse closedResponse = createSampleResponse(1L);
         closedResponse.setStatus(JobStatus.CLOSED);
 
-        when(jobService.closeJob(1L)).thenReturn(closedResponse);
+        when(jwtUtil.extractUserId("test-token")).thenReturn(101L);
+        when(jobService.closeJob(1L, 101L)).thenReturn(closedResponse);
 
-        mockMvc.perform(patch("/api/jobs/1/close"))
+        mockMvc.perform(patch("/api/jobs/1/close").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.status", is("CLOSED")));
 
-        verify(jobService, times(1)).closeJob(1L);
+        verify(jobService, times(1)).closeJob(1L, 101L);
     }
 }
