@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { TOKEN_KEY } from '../api/axiosClient'
+import { migrateLegacySession, TOKEN_KEY } from '../api/axiosClient'
 
 const AuthContext = createContext(null)
-const USER_KEY = 'goodwork.user'
+const USER_KEY = 'jobconnect.user'
 
 function readUser() {
   try {
@@ -14,7 +14,10 @@ function readUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(readUser)
+  const [user, setUser] = useState(() => {
+    migrateLegacySession()
+    return readUser()
+  })
 
   const signIn = useCallback((authResponse) => {
     localStorage.setItem(TOKEN_KEY, authResponse.token)
@@ -35,8 +38,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const expire = () => setUser(null)
-    window.addEventListener('goodwork:session-expired', expire)
-    return () => window.removeEventListener('goodwork:session-expired', expire)
+    window.addEventListener('jobconnect:session-expired', expire)
+    return () => window.removeEventListener('jobconnect:session-expired', expire)
   }, [])
 
   const value = useMemo(

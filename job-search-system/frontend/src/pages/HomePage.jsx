@@ -80,7 +80,7 @@ export function HomePage() {
           <Button to="/auth/register" variant="accent" size="lg">Create your free account <ArrowRight size={17} /></Button>
         </section>
       </main>
-      <footer className="border-t border-olive-100 px-5 py-6 text-center text-xs text-muted">Goodwork · Made for meaningful work</footer>
+      <footer className="border-t border-olive-100 px-5 py-6 text-center text-xs text-muted">JobConnect · Made for meaningful work</footer>
     </div>
   )
 }

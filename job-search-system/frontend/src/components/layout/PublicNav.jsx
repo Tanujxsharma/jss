@@ -12,7 +12,7 @@ export function PublicNav() {
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-olive-800 text-cream-50">
             <Sprout size={19} />
           </span>
-          <span className="font-display text-xl font-bold tracking-tight text-olive-900">goodwork<span className="text-accent-500">.</span></span>
+          <span className="font-display text-xl font-bold tracking-tight text-olive-900">jobconnect<span className="text-accent-500">.</span></span>
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/jobs" className="hidden text-sm font-medium text-muted transition hover:text-olive-800 sm:inline">Explore jobs</Link>

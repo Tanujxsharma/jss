@@ -49,7 +49,7 @@ export function DashboardPage() {
       <div className="mb-8 rounded-3xl bg-olive-900 px-6 py-7 text-cream-50 shadow-soft sm:px-9 sm:py-9">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-olive-200"><Sparkles size={14} /> Your Goodwork desk</p>
+            <p className="mb-2 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-olive-200"><Sparkles size={14} /> Your JobConnect desk</p>
             <h1 className="font-display text-3xl font-semibold sm:text-4xl">A good day to begin, {display}.</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-olive-100/80">{employer ? 'Your next great teammate could be one thoughtful listing away.' : 'Your next chapter is taking shape. Here’s where things stand today.'}</p>
           </div>

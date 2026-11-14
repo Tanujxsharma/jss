@@ -40,7 +40,7 @@ function App() {
   return (
     <>
       <ApiHealthCheck />
-      <Suspense fallback={<Spinner label="Opening Goodwork…" />}>
+      <Suspense fallback={<Spinner label="Opening JobConnect…" />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth/login" element={<PublicOnly><LoginPage /></PublicOnly>} />

@@ -131,7 +131,7 @@ export function ProfilePage() {
               </>
             )}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-olive-100 pt-5">
-              <p className="text-xs text-muted">{missing ? 'Your profile is required for applications and job listings.' : 'Your details are saved to your Goodwork profile.'}</p>
+              <p className="text-xs text-muted">{missing ? 'Your profile is required for applications and job listings.' : 'Your details are saved to your JobConnect profile.'}</p>
               <Button type="submit" loading={saving}>{profile ? 'Save changes' : 'Create profile'}</Button>
             </div>
           </form>

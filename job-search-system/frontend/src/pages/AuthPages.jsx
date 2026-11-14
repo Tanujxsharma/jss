@@ -44,7 +44,7 @@ export function LoginPage() {
         <Input label="Password" type="password" autoComplete="current-password" placeholder="Your password" error={errors.password?.message} {...register('password')} />
         <Button type="submit" size="lg" loading={submitting} className="w-full">Sign in <ArrowRight size={17} /></Button>
       </form>
-      <p className="mt-7 text-center text-sm text-muted">New to Goodwork? <Link to="/auth/register" className="font-semibold text-olive-800 hover:text-olive-600">Create an account</Link></p>
+      <p className="mt-7 text-center text-sm text-muted">New to JobConnect? <Link to="/auth/register" className="font-semibold text-olive-800 hover:text-olive-600">Create an account</Link></p>
     </AuthShell>
   )
 }

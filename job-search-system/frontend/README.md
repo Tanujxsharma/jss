@@ -1,6 +1,6 @@
-# Goodwork frontend
+# JobConnect frontend
 
-Goodwork is a responsive React/Vite frontend for the Spring Boot job-search services in this repository. It uses the API gateway at `http://localhost:8080` and only calls routes present in the backend controllers.
+JobConnect is a responsive React/Vite frontend for the Spring Boot job-search services in this repository. It uses the API gateway at `http://localhost:8080` and only calls routes present in the backend controllers.
 
 ## Run locally
 

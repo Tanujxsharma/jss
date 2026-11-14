@@ -50,7 +50,7 @@ export function AppLayout() {
           <div className="flex items-center gap-8">
             <Link to="/dashboard" className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-olive-800 text-cream-50"><Sprout size={19} /></span>
-              <span className="font-display text-xl font-bold tracking-tight text-olive-900">goodwork<span className="text-accent-500">.</span></span>
+              <span className="font-display text-xl font-bold tracking-tight text-olive-900">jobconnect<span className="text-accent-500">.</span></span>
             </Link>
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
               {links.map(({ to, label }) => (
@@ -124,7 +124,7 @@ export function AuthShell({ children, eyebrow = 'A better kind of job search' })
     <div className="min-h-screen bg-cream-100">
       <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-4 py-8 lg:grid-cols-[1fr_0.85fr] lg:px-10">
         <div className="hidden rounded-[2rem] bg-olive-900 p-10 text-cream-50 shadow-card lg:block">
-          <Link to="/" className="inline-flex items-center gap-2 font-display text-xl font-semibold"><Sprout size={19} /> goodwork<span className="text-accent-400">.</span></Link>
+          <Link to="/" className="inline-flex items-center gap-2 font-display text-xl font-semibold"><Sprout size={19} /> jobconnect<span className="text-accent-400">.</span></Link>
           <div className="mt-24 max-w-md">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-olive-200">{eyebrow}</p>
             <h1 className="font-display text-5xl leading-[1.13]">Work should fit the life you want.</h1>
@@ -139,7 +139,7 @@ export function AuthShell({ children, eyebrow = 'A better kind of job search' })
           </div>
         </div>
         <div className="mx-auto w-full max-w-md">
-          <Link to="/" className="mb-8 inline-flex items-center gap-2 font-display text-xl font-semibold text-olive-900 lg:hidden"><Sprout size={19} /> goodwork<span className="text-accent-500">.</span></Link>
+          <Link to="/" className="mb-8 inline-flex items-center gap-2 font-display text-xl font-semibold text-olive-900 lg:hidden"><Sprout size={19} /> jobconnect<span className="text-accent-500">.</span></Link>
           {children}
         </div>
       </div>

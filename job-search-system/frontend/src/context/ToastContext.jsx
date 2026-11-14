@@ -21,8 +21,8 @@ export function ToastProvider({ children }) {
 
   useEffect(() => {
     const onToast = (event) => notify(event.detail.message, event.detail.type)
-    window.addEventListener('goodwork:toast', onToast)
-    return () => window.removeEventListener('goodwork:toast', onToast)
+    window.addEventListener('jobconnect:toast', onToast)
+    return () => window.removeEventListener('jobconnect:toast', onToast)
   }, [notify])
 
   const value = useMemo(() => ({ notify }), [notify])

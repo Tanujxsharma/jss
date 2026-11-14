@@ -1,6 +1,18 @@
 import axios from 'axios'
 
-const TOKEN_KEY = 'goodwork.token'
+const TOKEN_KEY = 'jobconnect.token'
+const LEGACY_TOKEN_KEY = 'goodwork.token'
+const USER_KEY = 'jobconnect.user'
+const LEGACY_USER_KEY = 'goodwork.user'
+
+export function migrateLegacySession() {
+  const token = localStorage.getItem(LEGACY_TOKEN_KEY)
+  const user = localStorage.getItem(LEGACY_USER_KEY)
+  if (!localStorage.getItem(TOKEN_KEY) && token) localStorage.setItem(TOKEN_KEY, token)
+  if (!localStorage.getItem(USER_KEY) && user) localStorage.setItem(USER_KEY, user)
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
+  localStorage.removeItem(LEGACY_USER_KEY)
+}
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
@@ -9,6 +21,7 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
+  migrateLegacySession()
   const token = localStorage.getItem(TOKEN_KEY)
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
@@ -27,15 +40,15 @@ apiClient.interceptors.response.use(
 
     if (status === 401) {
       localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem('goodwork.user')
-      window.dispatchEvent(new CustomEvent('goodwork:session-expired'))
+      localStorage.removeItem(USER_KEY)
+      window.dispatchEvent(new CustomEvent('jobconnect:session-expired'))
       if (!window.location.pathname.startsWith('/auth/')) {
         window.location.assign('/auth/login')
       }
     } else if ((status === 403 || status >= 500) && !error.config?.suppressToast) {
       error.toastShown = true
       window.dispatchEvent(
-        new CustomEvent('goodwork:toast', {
+        new CustomEvent('jobconnect:toast', {
           detail: {
             type: 'error',
             message:
