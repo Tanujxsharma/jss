@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-olive-50: #F6F7EF;
+  --color-olive-100: #E9ECD6;
+  --color-olive-200: #D3D9AE;
+  --color-olive-300: #B6C07F;
+  --color-olive-400: #98A556;
+  --color-olive-500: #7D8A3C;
+  --color-olive-600: #626D2E;
+  --color-olive-700: #4B5426;
+  --color-olive-800: #3A4120;
+  --color-olive-900: #2A2F18;
+  --color-cream-50: #FFFDF8;
+  --color-cream-100: #FBF6EA;
+  --color-cream-200: #F5ECD6;
+  --color-cream-300: #EBDDB8;
+  --color-accent-400: #F0A04B;
+  --color-accent-500: #E8833A;
+  --color-accent-600: #CC6A25;
+  --color-ink: #23261A;
+  --color-muted: #6B6F5A;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --shadow-soft: 0 8px 30px -18px rgb(42 47 24 / 22%), 0 2px 6px -4px rgb(42 47 24 / 12%);
+  --shadow-card: 0 18px 50px -28px rgb(42 47 24 / 35%), 0 5px 12px -8px rgb(42 47 24 / 12%);
+  --animate-fade-in: fade-in 220ms ease-out both;
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--color-cream-50);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-accent-600);
+    outline-offset: 2px;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}
